@@ -19,7 +19,10 @@ TmSvrRos2::TmSvrRos2(const rclcpp::NodeOptions &options, tmr::Driver &iface, boo
   }
   else {
     std::vector<double> zeros(state_.DOF);
-    state_.set_joint_states(zeros, zeros, zeros);
+    std::vector<double> ready1(state_.DOF);
+    ready1[2] = 1.5708;
+    ready1[4] = 1.5708;
+    state_.set_joint_states(ready1, zeros, zeros);
   }
 
   jns_.clear();
