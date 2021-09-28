@@ -119,14 +119,14 @@ Enable the `Data Table Setting` item and check the following boxes as item prede
 
 > __Usage with MoveIt2 (Tentative)__ 
 >
-> See [Moveit2 tutorial](https://moveit.ros.org/install-moveit2/source/).<br/>
+> See [MoveIt2 tutorial](https://moveit.ros.org/install-moveit2/source/).<br/>
 > 
-> Assuming that the user is ready to build Moveit2, and the user wants to apply the MoveIt by TM Robot, please do'nt forget to source the MoveIt environment, or you can add  ``source <MoveIt_WS>/install/setup.bash`` to your .bashrc.<br/>
-> The `<MoveIt_WS>` means the Moveit2 workspace, for example `COLCON_WS` .<br/>
+> Assuming that the user is ready to build MoveIt2, and the user wants to apply the MoveIt by TM Robot, please do'nt forget to source the MoveIt environment, or you can add  ``source <MoveIt_WS>/install/setup.bash`` to your `.bashrc`.<br/>
+> The `<MoveIt_WS>` means the MoveIt2 workspace, for example `COLCON_WS` .<br/>
 > The `<TMDriver_WS>` means TM driver workspace, for example `tmdriver_ws` .<br/>
 >
 >
-> Then to built the TM driver based on the <TMDriver_WS> workspace, please enter the specific workspace `tmdriver_ws` by launching the terminal, and remember to make the workspace visible to ROS..<br/>
+> Then to built the TM driver based on the <TMDriver_WS> workspace, please enter the specific workspace `tmdriver_ws` by launching the terminal, and remember to make the workspace visible to ROS.<br/>
 >
 >
 > ```bash
@@ -137,18 +137,19 @@ Enable the `Data Table Setting` item and check the following boxes as item prede
 > source ./install/setup.bash
 > ```
 >
+> :bulb: Do you prepare the __TM Robot__ ready ? Make sure that TM Robot's operating software (__TMflow__) network settings are ready and the _Listen task_ project is running.<br/>
+>
 > The demo launches the RViz GUI and demonstrates planning and execution of a simple collision-free motion plan with TM Robot.
 > To bring up MoveIt2 demo environment in simulation mode with virtual TM Robot, by typing
 >
 > ```bash
-> ros2 launch tmr_run_moveit_cpp_demo run_moveit_cpp.launch.py
+> ros2 launch tmr_moveit_cpp_demo run_moveit_cpp.launch.py
 > ```
 >
 > The user can also manipulate real TM Robot to run, by typing<br/>
-> :bulb: Do you prepare the __TM Robot__ ready ? Make sure that TM Robot's operating software (__TMflow__) network settings are ready and the _Listen task_ project is running. 
 >
 > ```bash
-> ros2 launch tmr_run_moveit_cpp_demo run_moveit_cpp.launch.py robot_ip:=<robot_ip_address>
+> ros2 launch tmr_moveit_cpp_demo run_moveit_cpp.launch.py robot_ip:=<robot_ip_address>
 > ```
 >
 > The parameter `<robot_ip_address>` means the IP address of the TM Robot.<br/>
@@ -341,17 +342,19 @@ The GUI displays tm_driver connection status, sct, sta, svr messages and robot s
 
 
 ### &sect; GUI Debugging description
-> * If the user forgets to run the TM ROS driver, the user will see all the controlled label items of the GUI are displayed as "``NaN``".<br/>
-> * If "``is_svr_connected``" and "``is_sct_connected``" are true, it means that ROS SvrClient and SctClient are successfully connected.<br/>
-> * If "``is_svr_connected``" is false, the user should check whether the __Data Table Setting__  is correct.<br/>
-> * If "``is_sct_connected``" is false or false/true flashing, the user should check whether the task project is running.<br/>
-> * When the user send a command or click "``H/L``" button of Control Box DO0 Ctrl <sup>1</sup> ,  the user will see a response embedded in the "``Robot Response``" item view. <br/>
-> <sup>1</sup> For details of this item, please refer to __SctResponse.msg__, __StaResponse.msg__ and __SvrResponse.msg__ of TM ROS driver code.<br/>
-> * The user can click "``clear``" button to clear the old response items.<br/>
-> * If "``is_svr_connected``" and "``is_sct_connected``" are true, but the "``Robot_Link``" is false or "``Robot_Error``" is true; this means the robot is working abnormally, the ESTOP button may be pressed or some protection or error <sup>2</sup>  has occurred. Therefore, when the user sends a move script command at this time, it will not work. <br/> 
-> <sup>2</sup> For more detailed information, please refer to the TM Robot User Guide. <br/> 
-> * The user can click "``Quit_GUI``" button or click the "``x``" close button in the upper right corner to close this GUI. <br/> 
-> :bulb: If the user sents the script to leave the __Listen node__, or the network is disconnected while the tm_driver is connected, the display of all controlled label items in the GUI will remain in the last state and become invalid. <br/> 
+> * If the user forgets to run the TM ROS driver, the user will see all the controlled label items of the GUI are displayed as "NaN".<br/>
+> * The user can click "``Quit_GUI``" button or click the "``x``" close button in the upper right corner to close this GUI.<br/>
+> * If "``Ethernet``" and "``Listen Node``" connection display are "on", it means that ROS SvrClient and SctClient are successfully connected.<br/>
+> * If "``Ethernet``" connection display is is "off", the user should check whether the TM Robot has been started or whether the network settings are correct.<br/>
+> * If "``Listen Node``" connection is "off", the user should check whether the task project is running.<br/>
+> :bulb: If "``Listen Node``" connection is interrupted as "``Project_Run``" is stopped, the "``Listen Node``" connection will be "off". <br/>
+> * If both "``Ethernet``" and "``Listen Node``" connection display  are "on", but the "``Robot_Link``" is false or "``Robot_Error``" is true; this means the robot is working abnormally, or maybe the ESTOP button was pressed or or some kind of protection or error <sup>1</sup> occurred. Therefore, when the user sends a move script command at this time, it will not work.<br/> 
+> <sup>1</sup> For more detailed information, please refer to the TM Robot User Guide.<br/> 
+> * The user can use the self-developed script to read/write project data through communication protocols to control the TM Robot. If it does not work properly, the user can quickly determine whether there is a communication error code by viewing the "``Response ROS Node Status``" display.<br/>
+> * When the user sends a command or clicks DO0 Ctrl "``H/L``" button of Control_Box, the user also can see the response message <sup>2</sup> embedded in the "``Robot Response``" item view.<br/>
+> <sup>2</sup> For details of this item, please refer to __SctResponse.msg__, __StaResponse.msg__ and __SvrResponse.msg__ of TM ROS driver code.<br/>
+> * The user can click "``clear``" button to clear the old response message.<br/>
+> :bulb: If "``Ethernet``" connection is interrupted, the display of most controlled label items in the GUI will be displayed as "NaN" and the robot feedback state will remain the last state and become invalid.<br/>
 
 
 ### &sect; Usage with GUI debugging

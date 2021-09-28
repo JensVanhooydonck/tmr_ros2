@@ -22,6 +22,7 @@ public:
     TmRobotState &state_;
 
     TmSctCommunication &sct_;
+    TmDriver &iface_;
 
     struct PubMsg {
         rclcpp::Publisher<tm_msgs::msg::FeedbackState>::SharedPtr fbs_pub;
@@ -35,8 +36,11 @@ public:
         tm_msgs::msg::SvrResponse svr_msg;
     } pm_;
     
-    int sizeErrorCount = 0;
-    bool isPrint = false;
+    int diconnectTimes = 0;
+    uint64_t initialNotConnectTime = 0;
+    uint64_t notConnectTimeInS = 0;
+    int maxTrialTimeInMinute = -1;
+    uint64_t maxNotConnectTimeInS = 0;
     bool svr_updated_;
     std::mutex svr_mtx_;
     std::condition_variable svr_cv_;
@@ -55,10 +59,14 @@ public:
     ~TmSvrRos2();
 
 protected:
-    void publish_fbs();
+    void publish_fbs(TmCommRC rc);
     void publish_svr();
     bool publish_func();
     void publisher();
+    void svr_connect_recover();
+    void cq_monitor();//Connection quality
+    void cq_manage();
+    bool rc_halt();//Stop rescue connection
 
 public:
     bool connect_tmsvr(

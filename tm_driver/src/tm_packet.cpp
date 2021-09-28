@@ -215,7 +215,7 @@ size_t TmPacket::build_packet_from_bytes(TmPacket &packet, const char *bytes, si
 		std::stringstream ss;
 		ss << std::hex << bytes[ind_e] << bytes[ind_e + 1];
 		ss >> val;
-		packet._cs = char(val);
+		packet._cs = (char)(val);
 		if (cs != packet._cs) {
 			packet._is_cs_failed = true;
 			is_valid = false;
@@ -295,7 +295,7 @@ TmSvrData::ErrorCode TmSvrData::_error_code(const char *buf)
 {
 	char cc[3] = { buf[0], buf[1], '\0' };
 	int ic = std::atoi(cc);
-	if (ic < int(ErrorCode::Other)) {
+	if (ic < (int)(ErrorCode::Other)) {
 		return ErrorCode(ic);
 	}
 	else {
@@ -484,7 +484,7 @@ void TmSvrData::build_bytes(std::vector<char> &bytes, const TmSvrData &data)
 	}
 	bytes.insert(bytes.end(), std::begin(data._transaction_id), std::end(data._transaction_id));
 	bytes.push_back(TmPacket::P_SEPR);
-	std::string smode = std::to_string(int(data._mode));
+	std::string smode = std::to_string((int)(data._mode));
 	bytes.insert(bytes.end(), std::begin(smode), std::end(smode));
 	bytes.push_back(TmPacket::P_SEPR);
 	size_t ind_b = bytes.size();
@@ -656,11 +656,14 @@ void TmSctData::build_TmSctData(TmSctData &data, const std::string &id, const ch
 	data._size = len + id.size() + 1;
 	data._is_valid = true;
 }
+void TmSctData::set_sct_data_has_error(bool err_status){
+	this->_sctDataHasError = err_status;
+}
 void TmSctData::build_TmSctData(TmSctData &data, const char *bytes, size_t size, SrcType type)
 {
 	data._is_copy = (type != SrcType::Shallow);
 	data._is_valid = false;
-	data._has_error = false;
+	data._sctDataHasError = false;
 	data._is_ok = false;
 	//size_t ind_b = 0;
 	size_t ind_e = 0;
@@ -694,7 +697,7 @@ void TmSctData::build_TmSctData(TmSctData &data, const char *bytes, size_t size,
 		data._is_ok = true;
 	}
 	else if (strncmp(data._script, "ERROR", 5) == 0) {
-		data._has_error = true;
+		data._sctDataHasError = true;
 	}	
 	data._is_valid = true;
 }

@@ -31,7 +31,7 @@ private:
 public:
 	TmDataTable(TmRobotState *rs)
 	{
-		print_debug("Create DataTable");
+		RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),"Create DataTable");
 
 		_item_map.clear();
 		//_item_map[""] = { Item:, &rs- };
@@ -114,7 +114,7 @@ public:
 
 TmRobotState::TmRobotState()
 {
-	print_debug("TmRobotState::TmRobotState");
+	RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),"TmRobotState::TmRobotState");
 
 	_data_table = new TmDataTable(this);
 
@@ -148,9 +148,10 @@ TmRobotState::TmRobotState()
 	_f_deserialize = std::bind(&TmRobotState::_deserialize_first_time, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 }
+
 TmRobotState::~TmRobotState()
 {
-	print_debug("TmRobotState::~TmRobotState");
+	RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),"TmRobotState::~TmRobotState");
 	delete _data_table;
 }
 
@@ -204,7 +205,7 @@ std::vector<unsigned char> TmRobotState::mtx_ctrller_DI()
 }
 std::vector<float> TmRobotState::mtx_ctrller_AO()
 {
-	std::vector<float_t> rv;
+	std::vector<float> rv;
 	mtx_lock();
 	rv = _ctrller_AO;
 	mtx_unlock();
@@ -259,6 +260,7 @@ size_t TmRobotState::_deserialize_get_name(std::string &name, const char *data, 
 	boffset += 2 + uslen;
 	return boffset;
 }
+
 size_t TmRobotState::_deserialize_skip(void *dst, const char *data, size_t offset)
 {
 	size_t boffset = offset;
@@ -274,22 +276,23 @@ size_t TmRobotState::_deserialize_skip(void *dst, const char *data, size_t offse
 	if (dst) {}
 	return boffset;
 }
+
 size_t TmRobotState::_deserialize_copy_wo_check(void *dst, const char *data, size_t offset)
 {
 	size_t boffset = offset;
-	size_t bsize = 2;
+	//size_t bsize = 2;
 	unsigned short uslen; // 2 bytes
 
 	// skip item name
-	memcpy(&uslen, data + boffset, bsize);
-	boffset += bsize + uslen;
+	memcpy(&uslen, data + boffset, 2);
+	boffset += 2 + uslen;
 	// item data length
-	memcpy(&uslen, data + boffset, bsize);
-	boffset += bsize;
+	memcpy(&uslen, data + boffset, 2);
+	boffset += 2;
 	// item data
-	bsize = uslen;
-	memcpy(dst, data + boffset, bsize);
-	boffset += bsize;
+	//bsize = uslen;
+	memcpy(dst, data + boffset, uslen);
+	boffset += uslen;
 	return boffset;
 }
 
@@ -302,7 +305,7 @@ size_t TmRobotState::_deserialize_first_time(const char *data, size_t size, bool
 	unsigned short uslen = 0; // 2 bytes
 	std::string item_name;
 
-	print_info("TM Flow DataTable Checked Item: ");
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"TM Flow DataTable Checked Item: ");
 	_item_updates.clear();
 	//_f_deserialize_item.clear();
 
@@ -324,15 +327,13 @@ size_t TmRobotState::_deserialize_first_time(const char *data, size_t size, bool
 			//func = std::bind(&RobotState::_deserialize_copy_wo_check, iter->second.dst,
 			//	std::placeholders::_2, std::placeholders::_3);
 			iter->second.checked = true;
-			std::string msg = "- " + item_name + " - checked";
-			print_info(msg.c_str());
+			RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),"- " << item_name << " - checked");
 			++check_count;
 		}
 		else {
 			//func = std::bind(&RobotState::_deserialize_skip, nullptr,
 			//	std::placeholders::_2, std::placeholders::_3);
-			std::string msg = "- " + item_name + " - skipped";
-			print_info(msg.c_str());
+			RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),"- " << item_name << " - skipped");
 			++skip_count;
 		}
 		_item_updates.push_back({ update.dst, update.func });
@@ -352,26 +353,23 @@ size_t TmRobotState::_deserialize_first_time(const char *data, size_t size, bool
 		}
 		++count;
 	}
-	
-	std::string msg = "Total " + std::to_string(_item_updates.size()) + " item," +
-	std::to_string(check_count) + " checked, " + std::to_string(skip_count) + " skipped";
-	print_info(msg.c_str());
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"Total " << _item_updates.size() << " item," <<
+		check_count << " checked, " << skip_count << " skipped");
 	isDataTableCorrect = true;
 
 	_deserialize_update(lock);
 
 	for (auto iter : _data_table->get()) {
 		if (iter.second.required && !iter.second.checked) {
-			std::string msg = "Required item" + iter.first + " is NOT checked";
 			isDataTableCorrect = false;
-			print_error(msg.c_str());
+			RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"),"Required item" << iter.first << " is NOT checked");
 		}
 	}
 
 	if(isDataTableCorrect){
-	  print_info("data table is correct!");
+	  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"data table is correct!");
 	} else{
-          print_error("data table is not correct");
+	  RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"),"data table is not correct!");
 	}
 
 	_f_deserialize = std::bind(&TmRobotState::_deserialize, this,
@@ -379,6 +377,7 @@ size_t TmRobotState::_deserialize_first_time(const char *data, size_t size, bool
 
 	return boffset;
 }
+
 size_t TmRobotState::_deserialize(const char *data, size_t size, bool use_mtx)
 {
 	size_t boffset = 0;
@@ -387,13 +386,13 @@ size_t TmRobotState::_deserialize(const char *data, size_t size, bool use_mtx)
 		boffset = _f_deserialize_item[update.func](update.dst, data, boffset);
 	}
 
-
 	_deserialize_update(use_mtx);
 
 	if (boffset > size) {
 	}
 	return boffset;
 }
+
 void TmRobotState::_deserialize_update(bool lock) {
 	// ---------------
 	// update together
@@ -457,12 +456,12 @@ void TmRobotState::_deserialize_update(bool lock) {
 void TmRobotState::print()
 {
 	mtx_lock();
-	std::cout << "Robot_Link=" << _is_linked << "\n";
-	std::cout << "Robot_Error=" << _has_error << "\n";
-	std::cout << "Project_Run=" << _is_proj_running << "\n";
-	std::cout << "Project_Pause=" << _is_proj_running << "\n";
-	std::cout << "Safetyguard_A=" << _is_safeguard_A_triggered << "\n";
-	std::cout << "ESTOP=" << _is_ESTOP_pressed << "\n";
+	std::cout << "Robot_Link=" << (int)_is_linked << "\n";
+	std::cout << "Robot_Error=" << (int)_has_error << "\n";
+	std::cout << "Project_Run=" << (int)_is_proj_running << "\n";
+	std::cout << "Project_Pause=" << (int)_is_proj_paused << "\n";
+	std::cout << "Safetyguard_A=" << (int)_is_safeguard_A_triggered << "\n";
+	std::cout << "ESTOP=" << (int)_is_ESTOP_pressed << "\n";
 
 	std::cout << "Joint_Angle={";
 	for (auto &val : _joint_angle) { std::cout << val << ", "; }

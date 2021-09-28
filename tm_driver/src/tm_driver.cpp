@@ -9,7 +9,7 @@
 // no thread
 TmDriver::TmDriver(const std::string &ip) 
 	: svr{ ip, 4096 }
-	, sct{ ip, 2048 }
+	, sct{ ip, 2048, isOnListenNode }
 	, state{ svr.state }
 {
 }
@@ -19,7 +19,7 @@ TmDriver::TmDriver(const std::string &ip,
 	std::condition_variable *psvr_cv,
 	std::condition_variable *psct_cv)
 	: svr{ ip, 4096, psvr_cv }
-	, sct{ ip, 2048, psct_cv }
+	, sct{ ip, 2048, isOnListenNode,psct_cv }
 	, state{ svr.state }
 {
 	if (psvr_cv) {
@@ -35,22 +35,24 @@ TmDriver::TmDriver(const std::string &ip,
 bool TmDriver::start(int timeout_ms, bool stick_play)
 {
 	halt();
-	print_info("TM_DRV: start");
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"TM_DRV: start");
 	// connect to server
-	bool rb = svr.start(timeout_ms);
+	bool rb = svr.start_tm_svr(timeout_ms);
 	if (!rb) return rb;
 	// send command to run project
+	
 	if (stick_play) {
-		svr.send_stick_play();
+		//svr.send_stick_play();
 	}
+	
 	// connect to listen node
-	rb = sct.start(timeout_ms);
+	rb = sct.start_tm_sct(timeout_ms);
 	return rb;
 }
 
 void TmDriver::halt()
 {
-	print_info("TM_DRV: halt");
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"TM_DRV: halt");
 	if (sct.is_connected()) {
 		// send command to stop project
 		sct.send_script_exit();
@@ -62,6 +64,14 @@ void TmDriver::halt()
 	svr.halt();
 }
 
+bool TmDriver::get_connect_recovery_guide(){
+	return connect_recovery_is_halt;
+}
+
+void TmDriver::set_connect_recovery_guide(bool is_halt){
+	this->connect_recovery_is_halt = is_halt;
+}
+
 ////////////////////////////////
 // SVR Robot Function (write_XXX)
 ////////////////////////////////
@@ -69,35 +79,49 @@ void TmDriver::halt()
 ////////////////////////////////
 // SCT Robot Function (set_XXX)
 ////////////////////////////////
+bool TmDriver::is_on_listen_node(){
+	return isOnListenNode;
+}
+
+void TmDriver::back_to_listen_node(){
+	isOnListenNode = true;
+}
 
 bool TmDriver::script_exit(const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::script_exit()) == RC_OK);
 }
+
 bool TmDriver::set_tag(int tag, int wait, const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_tag(tag, wait)) == RC_OK);
 }
+
 bool TmDriver::set_wait_tag(int tag, int timeout_ms, const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_tag(tag, timeout_ms)) == RC_OK);
 }
+
 bool TmDriver::set_stop(const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_stop()) == RC_OK);
 }
+
 bool TmDriver::set_pause(const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_pause()) == RC_OK);
 }
+
 bool TmDriver::set_resume(const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_resume()) == RC_OK);
 }
+
 bool TmDriver::set_io(TmIOModule module, TmIOType type, int pin, float state, const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_io(module, type, pin, state)) == RC_OK);
 }
+
 bool TmDriver::set_joint_pos_PTP(const std::vector<double> &angs,
 		double vel, double acc_time, int blend_percent, bool fine_goal, const std::string &id)
 {
@@ -107,6 +131,7 @@ bool TmDriver::set_joint_pos_PTP(const std::vector<double> &angs,
 		id, TmCommand::set_joint_pos_PTP(angs, vel_pa, acc_time, blend_percent, fine_goal)
 	) == RC_OK);
 }
+
 bool TmDriver::set_tool_pose_PTP(const std::vector<double> &pose,
 		double vel, double acc_time, int blend_percent, bool fine_goal, const std::string &id)
 {
@@ -115,6 +140,7 @@ bool TmDriver::set_tool_pose_PTP(const std::vector<double> &pose,
 		id, TmCommand::set_tool_pose_PTP(pose, vel_pa, acc_time, blend_percent, fine_goal)
 	) == RC_OK);
 }
+
 bool TmDriver::set_tool_pose_Line(const std::vector<double> &pose,
 		double vel, double acc_time, int blend_percent, bool fine_goal, const std::string &id)
 {
@@ -127,10 +153,12 @@ bool TmDriver::set_pvt_enter(TmPvtMode mode, const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_pvt_enter(int(mode))) == RC_OK);
 }
+
 bool TmDriver::set_pvt_exit(const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_pvt_exit()) == RC_OK);
 }
+
 bool TmDriver::set_pvt_point(TmPvtMode mode,
 	double t, const std::vector<double> &pos, const std::vector<double> &vel, const std::string &id)
 {
@@ -138,6 +166,7 @@ bool TmDriver::set_pvt_point(TmPvtMode mode,
 
 	return (sct.send_script_str(id, TmCommand::set_pvt_point(mode, t, pos, vel)) == RC_OK);
 }
+
 bool TmDriver::set_pvt_point(TmPvtMode mode, const TmPvtPoint &point, const std::string &id)
 {
 	return (sct.send_script_str(id, TmCommand::set_pvt_point(mode, point)) == RC_OK);
@@ -146,8 +175,8 @@ bool TmDriver::set_pvt_point(TmPvtMode mode, const TmPvtPoint &point, const std:
 bool TmDriver::set_pvt_traj(const TmPvtTraj &pvts, const std::string &id)
 {
 	std::string script = TmCommand::set_pvt_traj(pvts);
-	print_info("TM_DRV: send script (pvt traj.):\n");
-	printf("%s\n", script.c_str());
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"TM_DRV: send script (pvt traj.):\n");
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),script);
 	return (sct.send_script_str(id, script) == RC_OK);
 }
 
@@ -158,7 +187,8 @@ bool TmDriver::run_pvt_traj(const TmPvtTraj &pvts)
 	_is_executing_traj = true;
 
 	if (!set_pvt_traj(pvts)) {
-		_is_executing_traj = false; return false;
+		_is_executing_traj = false; 
+		return false;
 	}
 
 	// wait
@@ -174,11 +204,10 @@ bool TmDriver::run_pvt_traj(const TmPvtTraj &pvts)
 	else {
 		set_stop();
 	}
-	print_info("TM_DRV: traj. exec. time:= %.3f", time);
+	RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"TM_DRV: traj. exec. time:=" << time);
 	return true;
 }
 void TmDriver::stop_pvt_traj()
 {
 	_is_executing_traj = false;
-	//set_stop();
 }

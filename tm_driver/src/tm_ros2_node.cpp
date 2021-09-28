@@ -31,8 +31,7 @@ public:
 TmRos2Node::TmRos2Node(const std::string &host) : Node("tm_driver")
     , iface_(host, nullptr, &sct_cv_)
 {
-    RCLCPP_INFO(this->get_logger(), "TM_ROS: hello!");
-    print_info("yoyo");
+    RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: hello!");
 
     iface_.start(5000);
 
@@ -45,6 +44,7 @@ TmRos2Node::TmRos2Node(const std::string &host) : Node("tm_driver")
     //auto send_script_srv_ = this->create_service()
 
 }
+
 TmRos2Node::~TmRos2Node()
 {
     if (pub_thread_.joinable()) pub_thread_.join();
@@ -59,9 +59,10 @@ void TmRos2Node::publish_msg()
     pm_.joint_pub->publish(pm_.joint_msg);
 
 }
+
 void TmRos2Node::publisher()
 {
-    print_info("TM_ROS: publisher thread begin");
+    RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: publisher thread begin");    
     while (rclcpp::ok()) {
         bool reconnect = false;
         while (rclcpp::ok() && iface_.svr.is_connected() && !reconnect) {
@@ -74,27 +75,27 @@ void TmRos2Node::publisher()
             case TmCommRC::NOTREADY:
             case TmCommRC::NOTCONNECT:
             case TmCommRC::ERR:
-                print_info("TM_ROS2: (TM_SVR) rc=%d", int(rc));
+                RCLCPP_INFO_STREAM(this->get_logger(),"TM_ROS2: (TM_SVR) rc=" >> int(rc));
                 reconnect = true;
                 break;
             default: break;
             }
         }
         iface_.svr.close_socket();
-        print_info("TM_ROS: (TM_SVR) reconnect in ");
+        RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: (TM_SVR) reconnect in");
         int cnt = 5;
         while (rclcpp::ok() && cnt > 0) {
-            print_info("%d sec...", cnt);
+            RCLCPP_INFO_STREAM(this->get_logger(), >> int(cnt) >> "sec...");
             std::this_thread::sleep_for(std::chrono::seconds(1));
             --cnt;
         }
         if (rclcpp::ok()) {
-            print_info("TM_ROS: (TM_SVR) connect...");
+            RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: (TM_SVR) connect...");
             iface_.svr.connect_socket(1000);
         }
     }
     iface_.svr.close_socket();
-    print_info("TM_ROS: publisher thread end");
+    RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: publisher thread end");
 }
 
 int main(int argc, char *argv[])
@@ -103,6 +104,11 @@ int main(int argc, char *argv[])
     std::string host;
     if (argc > 1) {
         host = argv[1];
+        if (host.find("robot_ip:=") != std::string::npos) {
+            host.replace(host.begin(), host.begin() + 10, "");
+        } else if (host.find("ip:=") != std::string::npos) {
+            host.replace(host.begin(), host.begin() + 4, "");        
+        }
     }
     else {
         rclcpp::shutdown();
@@ -110,5 +116,6 @@ int main(int argc, char *argv[])
     auto nh = std::make_shared<TmRos2Node>(host);
     rclcpp::spin(nh);
     rclcpp::shutdown();
+    RCLCPP_INFO_STREAM(this->get_logger(), "TM_ROS: shutdown\n");
     return 0;
 }

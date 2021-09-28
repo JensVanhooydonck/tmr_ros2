@@ -27,6 +27,8 @@ private:
 	double _max_velocity = M_PI;
 	double _max_tcp_speed = 1.0;
 	double _max_payload = 4.0;
+	bool isOnListenNode = false;
+	bool connect_recovery_is_halt = false;
 
 public:
 	explicit TmDriver(const std::string &ip);
@@ -56,7 +58,7 @@ public:
 	////////////////////////////////
 	// SCT Robot Function (set_XXX)
 	////////////////////////////////
-
+	bool is_on_listen_node();
 	bool script_exit(const std::string &id = "Exit");
 	bool set_tag(int tag, int wait = 0, const std::string &id = "Tag");
 	bool set_wait_tag(int tag, int timeout_ms = 0, const std::string &id = "WaitTag");
@@ -79,27 +81,6 @@ public:
 	// PVT Trajectory
 	//
 
-	/*enum class PvtMode { Joint, Tool };
-
-	struct PvtPoint {
-		double time;
-		std::vector<double> positions;
-		std::vector<double> velocities;
-	};*/
-
-	/*struct PvtTraj {
-		PvtMode mode;
-		std::vector<double> time_vec;
-		std::vector<std::vector<double> > positions_vec;
-		std::vector<std::vector<double> > velocities_vec;
-	};*/
-
-	/*struct PvtTraj {
-		PvtMode mode;
-		std::vector<PvtPoint> points;
-		double total_time;
-	};*/
-
 	bool set_pvt_enter(TmPvtMode mode, const std::string &id = "PvtEnter");
 	bool set_pvt_exit(const std::string &id = "PvtExit");
 	bool set_pvt_point(TmPvtMode mode,
@@ -110,4 +91,7 @@ public:
 
 	bool run_pvt_traj(const TmPvtTraj &pvts);
 	void stop_pvt_traj();
+	void back_to_listen_node();
+	bool get_connect_recovery_guide();
+	void set_connect_recovery_guide(bool is_halt);
 };

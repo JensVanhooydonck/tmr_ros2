@@ -24,10 +24,10 @@ int main(int argc, char **argv)
 
   while (!client->wait_for_service(1s)) {
     if (!rclcpp::ok()) {
-      std::cout<<"Interrupted while waiting for the service. Exiting."<<std::endl;
+      RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");	
       return false;
     }
-    std::cout<<"service not available, waiting again...";
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "service not available, waiting again..."); 	
   }
 
   auto result = client->async_send_request(request);
@@ -36,15 +36,15 @@ int main(int argc, char **argv)
     rclcpp::executor::FutureReturnCode::SUCCESS)
   {
     if(result.get()->ok){
-      std::cout<<"OK"<<std::endl;
-      std::cout<<"subcmd is "<<result.get()->subcmd<<std::endl;
-      std::cout<<"subdata is "<<result.get()->subdata<<std::endl;
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"OK");
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), result.get()->subcmd);
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), result.get()->subdata);
     } else{
-      std::cout<<"not OK"<<std::endl;
+      RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),"not OK");	
     }
 
   } else {
-    std::cout<<"Failed to call service"<<std::endl;
+    RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"), "Failed to call service");
   }
   return true;
 
