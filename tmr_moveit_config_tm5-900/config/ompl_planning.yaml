@@ -91,6 +91,8 @@ planner_configs:
     frountier_threshold: 0.0  # dist new state to nearest neighbor to disqualify as frontier. default: 0.0 set in setup()
     frountier_node_ratio: 0.1  # 1/10, or 1 nonfrontier for every 10 frontier. default: 0.1
     cost_threshold: 1e300  # the cost threshold. Any motion cost that is not better will not be expanded. default: inf
+    default_attached_padding: 0.01
+    optimization_objective : MaximizeMinClearanceObjective
   LBTRRT:
     type: geometric::LBTRRT
     range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
@@ -121,7 +123,7 @@ planner_configs:
     dense_delta_fraction: 0.001  # delta fraction for interface detection. default: 0.001
     max_failures: 5000  # maximum consecutive failure limit. default: 5000
 tmr_arm:
-  default_planner_config: None
+  default_planner_config: BiTRRT
   planner_configs:
     - SBL
     - EST

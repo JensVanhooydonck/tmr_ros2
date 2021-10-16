@@ -167,7 +167,10 @@ void TmSvrRos2::publish_fbs()
   quat.setRPY(pose[3], pose[4], pose[5]);
   tf2::Transform Tbt{ quat, tf2::Vector3(pose[0], pose[1], pose[2]) };
   pm.tool_pose_msg.header.stamp = pm.joint_msg.header.stamp;
-
+  pm.tool_pose_msg.pose.position.x = pose[0];
+  pm.tool_pose_msg.pose.position.y = pose[1];
+  pm.tool_pose_msg.pose.position.z = pose[2];
+  pm.tool_pose_msg.pose.orientation = tf2::toMsg(quat.normalize());
   pm.tool_pose_pub->publish(pm.tool_pose_msg);
 }
 void TmSvrRos2::publish_svr()

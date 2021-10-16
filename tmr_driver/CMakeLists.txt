@@ -19,8 +19,8 @@ add_definitions(-DROS2_BUILD)
 
 # Please refer to https://moveit.ros.org/install-moveit2/source
 # In addition, you can use the command ``gedit ./src/tmr_driver/CMakeLists.txt`` in the <TMDriver_WS> workspace to manually modify the "false" of "moveit2_module_install_ready" to "true" to compile.
-set(moveit2_module_install_ready false)
-#set(moveit2_module_install_ready true)
+#set(moveit2_module_install_ready false)
+set(moveit2_module_install_ready true)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
