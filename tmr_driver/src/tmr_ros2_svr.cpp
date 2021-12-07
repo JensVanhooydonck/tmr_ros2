@@ -152,6 +152,19 @@ void TmSvrRos2::publish_fbs()
   //pm.fbs_msg.ee_analog_output = state.ee_AO();
   pm.fbs_msg.ee_analog_input = state.ee_AI();
   pm.fbs_msg.error_content = state.error_content();
+
+  // gripper
+  pm.fbs_msg.gripper_external_width = state.gripper_external_width();
+  pm.fbs_msg.gripper_internal_width = state.gripper_internal_width();
+  pm.fbs_msg.gripper_error = state.gripper_error();
+  // hex
+  pm.fbs_msg.hex_sensor_fx = state.hex_sensor_FX();
+  pm.fbs_msg.hex_sensor_fy = state.hex_sensor_FY();
+  pm.fbs_msg.hex_sensor_fz = state.hex_sensor_FZ();
+  pm.fbs_msg.hex_sensor_tx = state.hex_sensor_TX();
+  pm.fbs_msg.hex_sensor_ty = state.hex_sensor_TY();
+  pm.fbs_msg.hex_sensor_tz = state.hex_sensor_TZ();
+
   pm.fbs_pub->publish(pm.fbs_msg);
 
   // Publish joint state

@@ -106,6 +106,18 @@ public:
 		_item_map["End_AO1"            ] = { &rs->_ee_AO_[1] };
 		_item_map["End_AI0"            ] = { &rs->_ee_AI_[0] };
 		_item_map["End_AI1"            ] = { &rs->_ee_AI_[1] };
+		// gripper
+		_item_map["g_Gripper_OR_2FG7_ExternalWidth"        ] = { &rs->_gripper_external_width_ };
+		_item_map["g_Gripper_OR_2FG7_InternalWidth"        ] = { &rs->_gripper_internal_width_ };
+		_item_map["g_Gripper_OR_2FG7_Error"       	   ] = { &rs->_gripper_error_ };
+
+		// Hex
+		_item_map["g_SENSOR_OR_HEX_FX"        ] = { &rs->_hex_sensor_FX_ };
+		_item_map["g_SENSOR_OR_HEX_FY"        ] = { &rs->_hex_sensor_FY_ };
+		_item_map["g_SENSOR_OR_HEX_FZ"        ] = { &rs->_hex_sensor_FZ_ };
+		_item_map["g_SENSOR_OR_HEX_TX"        ] = { &rs->_hex_sensor_TX_ };
+		_item_map["g_SENSOR_OR_HEX_TY"        ] = { &rs->_hex_sensor_TY_ };
+		_item_map["g_SENSOR_OR_HEX_TZ"        ] = { &rs->_hex_sensor_TZ_ };
 	}
 	std::map<std::string, Item>  & get() { return _item_map; }
 	std::map<std::string, Item>::iterator find(const std::string &name) { return _item_map.find(name); }
@@ -611,6 +623,17 @@ void RobotState::_deserialize_update(bool lock){
 		for (int i = 0; i < 2; ++i) { _ee_AO[i] = _ee_AO_[i]; }
 		for (int i = 0; i < 2; ++i) { _ee_AI[i] = _ee_AI_[i]; }
 	}
+
+	_gripper_external_width = _gripper_external_width_;
+	_gripper_internal_width = _gripper_internal_width_;
+	_gripper_error = _gripper_error_;
+	_hex_sensor_FX = _hex_sensor_FX_;
+	_hex_sensor_FY = _hex_sensor_FY_;
+	_hex_sensor_FZ = _hex_sensor_FZ_;
+	_hex_sensor_TX = _hex_sensor_TX_;
+	_hex_sensor_TY = _hex_sensor_TY_;
+	_hex_sensor_TZ = _hex_sensor_TZ_;
+
 }
 
 void RobotState::print()

@@ -67,6 +67,19 @@ private:
 	float _ee_AO_[2];
 	float _ee_AI_[2];
 
+	// Gripper
+	float _gripper_external_width_;
+	float _gripper_internal_width_;
+	int _gripper_error_;
+
+	// Hex
+	float _hex_sensor_FX_;
+	float _hex_sensor_FY_;
+	float _hex_sensor_FZ_;
+	float _hex_sensor_TX_;
+	float _hex_sensor_TY_;
+	float _hex_sensor_TZ_;
+
 private:
 	unsigned char _is_linked;
 	unsigned char _has_error;
@@ -110,6 +123,19 @@ private:
 	std::vector<float> _ee_AO;
 	std::vector<float> _ee_AI;
 
+	// Gripper
+	float _gripper_external_width;
+	float _gripper_internal_width;
+	int _gripper_error;
+
+	// Hex
+	float _hex_sensor_FX;
+	float _hex_sensor_FY;
+	float _hex_sensor_FZ;
+	float _hex_sensor_TX;
+	float _hex_sensor_TY;
+	float _hex_sensor_TZ;
+
 private:
 	std::function<size_t (void *, const char *, size_t)> _f_deserialize_item[2];
 	std::function<size_t (const char *, size_t, bool)> _f_deserialize;
@@ -136,6 +162,19 @@ public:
 	unsigned char is_EStop() { return _is_ESTOP_pressed; }
 
 	unsigned char camera_light() { return _camera_light; } // R/W
+
+	// Gripper
+	float gripper_external_width() { return _gripper_external_width; }
+	float gripper_internal_width() { return _gripper_internal_width; }
+	int gripper_error() { return _gripper_error; }
+
+	// Hex
+	float hex_sensor_FX() { return _hex_sensor_FX; }
+	float hex_sensor_FY() { return _hex_sensor_FY; }
+	float hex_sensor_FZ() { return _hex_sensor_FZ; }
+	float hex_sensor_TX() { return _hex_sensor_TX; }
+	float hex_sensor_TY() { return _hex_sensor_TY; }
+	float hex_sensor_TZ() { return _hex_sensor_TZ; }
 
 	int error_code() { return _error_code; }
 	std::string error_content() { return _error_content; }

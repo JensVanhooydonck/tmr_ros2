@@ -55,3 +55,17 @@ float32[] ee_analog_input
 # String
 string error_content
 
+# Gripper
+float32 gripper_external_width
+float32 gripper_internal_width
+int32 gripper_error
+
+# Hex
+float32 hex_sensor_fx
+float32 hex_sensor_fy
+float32 hex_sensor_fz
+float32 hex_sensor_tx
+float32 hex_sensor_ty
+float32 hex_sensor_tz
+
+
