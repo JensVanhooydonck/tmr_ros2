@@ -169,12 +169,12 @@ public:
 	int gripper_error() { return _gripper_error; }
 
 	// Hex
-	float hex_sensor_FX() { return _hex_sensor_FX; }
-	float hex_sensor_FY() { return _hex_sensor_FY; }
-	float hex_sensor_FZ() { return _hex_sensor_FZ; }
-	float hex_sensor_TX() { return _hex_sensor_TX; }
-	float hex_sensor_TY() { return _hex_sensor_TY; }
-	float hex_sensor_TZ() { return _hex_sensor_TZ; }
+	float hex_sensor_FX() { return round(_hex_sensor_FX * 1000.0) / 1000.0; }
+	float hex_sensor_FY() { return round(_hex_sensor_FY * 1000.0) / 1000.0; }
+	float hex_sensor_FZ() { return round(_hex_sensor_FZ * 1000.0) / 1000.0; }
+	float hex_sensor_TX() { return round(_hex_sensor_TX * 1000.0) / 1000.0; }
+	float hex_sensor_TY() { return round(_hex_sensor_TY * 1000.0) / 1000.0; }
+	float hex_sensor_TZ() { return round(_hex_sensor_TZ * 1000.0) / 1000.0; }
 
 	int error_code() { return _error_code; }
 	std::string error_content() { return _error_content; }

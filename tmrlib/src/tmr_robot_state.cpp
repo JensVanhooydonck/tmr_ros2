@@ -627,12 +627,12 @@ void RobotState::_deserialize_update(bool lock){
 	_gripper_external_width = _gripper_external_width_;
 	_gripper_internal_width = _gripper_internal_width_;
 	_gripper_error = _gripper_error_;
-	_hex_sensor_FX = _hex_sensor_FX_;
-	_hex_sensor_FY = _hex_sensor_FY_;
-	_hex_sensor_FZ = _hex_sensor_FZ_;
-	_hex_sensor_TX = _hex_sensor_TX_;
-	_hex_sensor_TY = _hex_sensor_TY_;
-	_hex_sensor_TZ = _hex_sensor_TZ_;
+	_hex_sensor_FX = round(_hex_sensor_FX_ / 1000.0) * 1000.0;
+	_hex_sensor_FY = round(_hex_sensor_FY_ / 1000.0) * 1000.0;
+	_hex_sensor_FZ = round(_hex_sensor_FZ_ / 1000.0) * 1000.0;
+	_hex_sensor_TX = round(_hex_sensor_TX_ / 1000.0) * 1000.0;
+	_hex_sensor_TY = round(_hex_sensor_TY_ / 1000.0) * 1000.0;
+	_hex_sensor_TZ = round(_hex_sensor_TZ_ / 1000.0) * 1000.0;
 
 }
 
