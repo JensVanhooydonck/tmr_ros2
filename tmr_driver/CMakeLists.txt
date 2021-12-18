@@ -23,7 +23,7 @@ add_definitions(-DROS2_BUILD)
 set(moveit2_lib_auto_judge true)
 
 # If the user enable this tmr_driver_message_print to print debug messages, more information will be displayed "1 package had stderr output: tmr_driver" on the screen. 
-set(tmr_driver_message_print true)  
+#set(tmr_driver_message_print true)  
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -88,9 +88,9 @@ ament_target_dependencies(tmr_driver
   tmrlib
 )
 
-target_link_libraries(tmr_driver
- tmrlib::tmrdriver
-)
+#target_link_libraries(tmr_driver
+#  tmrlib::tmrdriver
+#)
 
 install(TARGETS
   tmr_driver
