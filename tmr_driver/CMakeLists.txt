@@ -88,9 +88,9 @@ ament_target_dependencies(tmr_driver
   tmrlib
 )
 
-#target_link_libraries(tmr_driver
-#  tmrlib::tmrdriver
-#)
+target_link_libraries(tmr_driver
+ tmrlib::tmrdriver
+)
 
 install(TARGETS
   tmr_driver
