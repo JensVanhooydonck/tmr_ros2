@@ -34,6 +34,7 @@ private:
 	unsigned char _camera_light_;
 
 	int _error_code_;
+	std::string _error_content_; 
 
 	float _joint_angle_[DOF];
 	float _flange_pose_[6];

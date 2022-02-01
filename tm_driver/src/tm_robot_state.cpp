@@ -43,6 +43,7 @@ public:
 		_item_map["ESTOP"              ] = { &rs->_is_ESTOP_pressed_ };
 		_item_map["Camera_Light"       ] = { &rs->_camera_light_ };
 		_item_map["Error_Code"         ] = { &rs->_error_code_ };
+		_item_map["Error_Content"         ] = { &rs->_error_content_ };
 		_item_map["Joint_Angle"        ] = { &rs->_joint_angle_ };
 		_item_map["Coord_Robot_Flange" ] = { &rs->_flange_pose_ };
 		_item_map["Coord_Robot_Tool"   ] = { &rs->_tool_pose_ };
@@ -409,6 +410,7 @@ void TmRobotState::_deserialize_update(bool lock) {
 	_is_ESTOP_pressed = _is_ESTOP_pressed_;
 	_camera_light = _camera_light_;
 	_error_code = _error_code_;
+	_error_content = _error_content_;
 
 	_proj_speed = _proj_speed_;
 	_ma_mode = _ma_mode_;

@@ -55,6 +55,7 @@ TmSvrRos2::TmSvrRos2(const rclcpp::NodeOptions &options, tmr::Driver &iface, boo
     pub_thread_ = std::thread(std::bind(&TmSvrRos2::fake_publisher, this));
   }
   if (!is_fake_) {
+     tmr_INFO_STREAM("TM_ROS: creating services");
     connect_tm_srv_ = create_service<tmr_msgs::srv::ConnectTM>(
       "tmr/connect_tmsvr", std::bind(&TmSvrRos2::connect_tmsvr, this,
       std::placeholders::_1, std::placeholders::_2));
@@ -349,6 +350,7 @@ bool TmSvrRos2::write_item(
   const std::shared_ptr<tmr_msgs::srv::WriteItem::Request> req,
   std::shared_ptr<tmr_msgs::srv::WriteItem::Response> res)
 {
+  tmr_INFO_STREAM("TM_ROS: Got write item");
   bool rb;
   std::string content = req->item + "=" + req->value;
   rb = (svr_.send_content_str(req->id, content) == tmr::CommRC::OK);
