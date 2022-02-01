@@ -19,7 +19,8 @@ More information: TM ROS driver support list
 |[**<font color=#808080>ROS 2 Foxy Fitzroy**](https://index.ros.org/doc/ros2/Releases/Release-Foxy-Fitzroy/)|[**<font color=#800000>TM ROS2 Foxy driver**](https://github.com/TechmanRobotInc/tmr_ros2)|supported|master|
 |[**<font color=#808080>ROS 2 Dashing Diademata**](https://index.ros.org/doc/ros2/Releases/Release-Dashing-Diademata/)|[**<font color=#800000>TM ROS2 Dashing driver**](https://github.com/TechmanRobotInc/tmr_ros2/tree/dashing-devel)|supported|dashing-devel|
 
-Note: The two current master branches are ROS1 Melodic and ROS2 Foxy.<br/>
+Note1: The two current master branches are ROS1 Melodic and ROS2 Foxy.<br/>
+Note2: The tutorial that follows mentioned how to build a ROS environment on Ubuntu by sourcing is to take the ROS installed through the Debian packages as an example.<br/>
 
 
 ### __ROS2 Driver__
@@ -78,6 +79,8 @@ Enable the `Data Table Setting` item and check the following boxes as item prede
 >
 >       ![2](figures/3.png)
 >
+>    Another way to set the __Ethernet Slave Data Table__ settings is to directly import the software package , see [TM ROS Driver vs TMflow software Usage : Import Data Table Setting](https://github.com/TechmanRobotInc/TM_Export).
+>  
 > 4. Press the Play/Pause Button on the Robot Stick to start running this _Listen task_ project.
 >
 
@@ -98,7 +101,7 @@ Enable the `Data Table Setting` item and check the following boxes as item prede
 
 > __ROS2 driver usage__
 > 
-> After the user has set up the ROS2 environment and built the TM driver based on the specific workspace, please enter your workspace `<workspace>` by launching the terminal, and remember to make the workspace visible to ROS. 
+> After the user has set up the ROS2 environment (example : [Debian packages for ROS 2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)) and built the TM driver based on the specific workspace, please enter your workspace `<workspace>` by launching the terminal, and remember to make the workspace visible to ROS. 
 >
 >
 > ```bash
@@ -137,19 +140,30 @@ Enable the `Data Table Setting` item and check the following boxes as item prede
 > source ./install/setup.bash
 > ```
 >
+> :bulb: If you have built the TM driver before, you must use `colcon build --cmake-clean-cache` or `colcon build --cmake-force-configure` instead of `colcon build` in the previous step to force execution CMake configuration step, for example<br/>
+>
+>
+> ```bash
+> source /opt/ros/foxy/setup.bash
+> source ~/COLCON_WS/install/setup.bash
+> cd ~/tmdriver_ws 
+> colcon build --cmake-clean-cache
+> source ./install/setup.bash
+> ```
+>
 > :bulb: Do you prepare the __TM Robot__ ready ? Make sure that TM Robot's operating software (__TMflow__) network settings are ready and the _Listen task_ project is running.<br/>
 >
 > The demo launches the RViz GUI and demonstrates planning and execution of a simple collision-free motion plan with TM Robot.
 > To bring up MoveIt2 demo environment in simulation mode with virtual TM Robot, by typing
 >
 > ```bash
-> ros2 launch tmr_moveit_cpp_demo run_moveit_cpp.launch.py
+> ros2 launch tm_moveit_cpp_demo run_moveit_cpp.launch.py
 > ```
 >
 > The user can also manipulate real TM Robot to run, by typing<br/>
 >
 > ```bash
-> ros2 launch tmr_moveit_cpp_demo run_moveit_cpp.launch.py robot_ip:=<robot_ip_address>
+> ros2 launch tm_moveit_cpp_demo run_moveit_cpp.launch.py robot_ip:=<robot_ip_address>
 > ```
 >
 > The parameter `<robot_ip_address>` means the IP address of the TM Robot.<br/>

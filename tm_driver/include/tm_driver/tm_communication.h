@@ -5,17 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <condition_variable>
-
-
-enum class TmCommRC {
-	ERR = -1,
-	OK = 0,
-	TIMEOUT,
-	NOTREADY,
-	NOTCONNECT,
-	NOTSENDALL,
-	NOVALIDPACK,
-};
+#include "tm_driver_utilities.h"
 
 class TmCommRecv;
 
@@ -53,7 +43,7 @@ public:
 		return _isConnected;
 	}
 
-	bool connect_socket(int timeout_ms = 0);
+	bool connect_socket(std::string errorName, int timeout_ms = 0);
 
 	void close_socket();
 
@@ -66,6 +56,12 @@ public:
 	TmCommRC send_packet_all(TmPacket &packet, int *n = nullptr);
 
 	TmCommRC send_packet_(TmPacket &packet, int *n = nullptr);
+
+	TmCommRC send_packet_silent(TmPacket &packet, int *n = nullptr);
+	
+	TmCommRC send_packet_silent_all(TmPacket &packet, int *n = nullptr);
+	
+	TmCommRC send_packet_silent_(TmPacket &packet, int *n = nullptr);
 
 	bool recv_init();
 

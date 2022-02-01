@@ -18,20 +18,49 @@ void error_function_print(char* msg){
 void fatal_function_print(char* msg){
   printf("%s[TM_FATAL] %s\n%s", PRINT_GREEN.c_str(), msg, PRINT_RESET.c_str());
 }
+
+void ros_debug_print(char* msg){
+  RCLCPP_DEBUG_STREAM(rclcpp::get_logger("rclcpp"),msg);
+}
+void ros_info_print(char* msg){
+  RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),msg);
+}
+void ros_warn_function_print(char* msg){
+  RCLCPP_WARN_STREAM(rclcpp::get_logger("rclcpp"),msg);
+}
+void ros_error_print(char* msg){
+  RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"),msg);
+}
+void ros_fatal_print(char* msg){
+  std::string str = msg;
+  str = "[TM_FATAL]" + str;
+  RCLCPP_ERROR_STREAM(rclcpp::get_logger("rclcpp"),str.c_str());
+}
+void ros_once_print(char* msg){
+  RCLCPP_INFO_STREAM_ONCE(rclcpp::get_logger("rclcpp"),msg);
+}
 void set_up_print_fuction(){
   set_up_print_debug_function(debug_function_print);
   set_up_print_info_function(info_function_print);
   set_up_print_warn_function(warn_function_print);
   set_up_print_error_function(error_function_print);
   set_up_print_fatal_function(fatal_function_print);
+  set_up_print_once_function(default_print_once_function_print);
 }
-
+void set_up_ros_print_fuction(){
+  set_up_print_debug_function(ros_debug_print);
+  set_up_print_info_function(ros_info_print);
+  set_up_print_warn_function(ros_warn_function_print);
+  set_up_print_error_function(ros_error_print);
+  set_up_print_fatal_function(ros_fatal_print);
+  set_up_print_once_function(ros_once_print);
+}
 int main(int argc, char *argv[])
 {
     // Force flush of the stdout buffer.
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
     
-    set_up_print_fuction();
+    set_up_ros_print_fuction();
 
     rclcpp::init(argc, argv);
     
@@ -48,22 +77,35 @@ int main(int argc, char *argv[])
         rclcpp::shutdown();
     }
 
-    rclcpp::executors::SingleThreadedExecutor exec;
+    if(argc == 3){
+      bool isSetNoLogPrint;
+      std::istringstream(argv[2]) >> std::boolalpha >> isSetNoLogPrint;
+      if(isSetNoLogPrint){
+        set_up_print_fuction();
+      }
+    }
+
+    //rclcpp::executors::SingleThreadedExecutor exec;
     rclcpp::NodeOptions options;
 
     //std::condition_variable sct_cv;
     TmDriver iface(host, nullptr, nullptr);
 
-    auto tm_svr = std::make_shared<TmSvrRos2>(options, iface);
+    /*auto tm_svr = std::make_shared<TmSvrRos2>(options, iface);
     exec.add_node(tm_svr);
     auto tm_sct = std::make_shared<TmSctRos2>(options, iface);
-    exec.add_node(tm_sct);
+    exec.add_node(tm_sct);*/
 
-    exec.spin();
+    rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("tm_driver_node");
+
+    //exec.spin();
+    auto tm_svr = std::make_shared<TmSvrRos2>(node, iface);
+    auto tm_sct = std::make_shared<TmSctRos2>(node, iface);
+    rclcpp::spin(node);
 
     //iface.halt();
 
     rclcpp::shutdown();
     std::cout<<"shut down is called"<<std::endl;
-    return 1;
+    return 0;
 }

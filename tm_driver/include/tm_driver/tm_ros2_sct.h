@@ -17,9 +17,10 @@
 #include "tm_msgs/srv/ask_sta.hpp"
 
 
-class TmSctRos2 : public rclcpp::Node
+class TmSctRos2
 {
 public:
+    rclcpp::Node::SharedPtr node;
     TmSctCommunication &sct_;
     TmDriver &iface_;
     std::mutex checkIsOnListenNodeMutex;
@@ -55,7 +56,7 @@ public:
     rclcpp::Service<tm_msgs::srv::AskSta>::SharedPtr ask_sta_srv_;
 
 public:
-    explicit TmSctRos2(const rclcpp::NodeOptions &options, TmDriver &iface);
+    explicit TmSctRos2(rclcpp::Node::SharedPtr node, TmDriver &iface);
     ~TmSctRos2();
 
 protected:
