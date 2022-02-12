@@ -246,6 +246,7 @@ bool TmDriver::fake_run_pvt_traj(const TmPvtTraj &pvts)
 	auto time_now = time_init;
 
 	if (pvts.mode != TmPvtMode::Joint || pvts.points.size() < 2) return false;
+	// if (pvts.mode != TmPvtMode::Joint || pvts.points.size() < 1) return false;
 
 	//for (auto &p : pvts.points) RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"),TmCommand::set_pvt_point(pvts.mode, p));
 
@@ -289,6 +290,7 @@ bool TmDriver::fake_run_pvt_traj(const TmPvtTraj &pvts)
 	// last point
 	if (_is_executing_traj) {
 		idx = pvts.points.size() - 1;
+		//if((int)idx - 1 >= 0)
 		cubic_interp(point, pvts.points[idx - 1], pvts.points[idx], pvts.points[idx].time);
 	}
 	state.mtx_set_joint_states(point.positions, zeros, zeros);

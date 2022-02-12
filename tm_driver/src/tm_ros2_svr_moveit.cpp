@@ -16,7 +16,11 @@ TmSvrRos2::TmSvrRos2(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake
     }
     else {
       std::vector<double> zeros(state_.DOF);
-      state_.set_joint_states(zeros, zeros, zeros);
+      std::vector<double> joints(state_.DOF);
+      joints[2] = 3.14 / 2;
+      joints[4] = 3.14 / 2;
+      joints[5] = 3.14 / 2;
+      state_.set_joint_states(joints, zeros, zeros);
     }
 
     jns_.clear();

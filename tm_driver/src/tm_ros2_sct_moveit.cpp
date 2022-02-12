@@ -70,6 +70,8 @@ TmSctRos2::TmSctRos2(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake
     std::bind(&TmSctRos2::handle_cancel, this, std::placeholders::_1),
     std::bind(&TmSctRos2::handle_accepted, this, std::placeholders::_1)
   );
+  sub_trajectory_cmd_output_ = node->create_subscription<trajectory_msgs::msg::JointTrajectory>("joint_trajectory_tm", rclcpp::SystemDefaultsQoS(),
+          std::bind(&TmSctRos2::trajectoryCommandCB, this, std::placeholders::_1));
   goal_id_.clear();
   has_goal_ = false;
 }
@@ -424,6 +426,58 @@ bool TmSctRos2::ask_sta(
     return res->ok;
 }
 
+bool TmSctRos2::trajectoryCommandCB(const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> trajectory)
+{
+  print_info("TM_ROS: trajectoryCommandCB");
+  auto &traj_points = trajectory->points;
+  int len = traj_points.size();
+  print_info("TM_ROS: trajectoryCommandCB %d", len);
+  if(len == 1 && traj_points[0].time_from_start.sec == 0 && traj_points[0].time_from_start.nanosec == 0) {
+      traj_points[0].time_from_start.set__nanosec(25000000);
+      // // insert current position;
+      // trajectory_msgs::msg::JointTrajectoryPoint point;
+      // point.positions =  state_.joint_angle();
+      // point.velocities = {0,0,0,0,0,0};
+      // point.accelerations = {0,0,0,0,0,0};
+      // point.time_from_start.set__sec(0);
+      // point.time_from_start.set__nanosec(0);
+      // traj_points.insert(traj_points.begin(), point);
+      // print_info("TM_ROS: Inserted current point");
+      // len = traj_points.size();
+  }  
+
+  if (!is_positions_match(traj_points.front(), 0.01)) {
+    print_warn("Start point doesn't match current pose");
+  }
+
+  auto pvts = get_pvt_traj(traj_points, 0.025);
+  if (pvts->points.size() == 0) {
+    print_warn("TM_ROS: No PVT trajectory");
+    return false;
+  }
+
+
+
+  if (!is_fake_) {
+    iface_.run_pvt_traj(*pvts);
+  }
+  else {
+    iface_.fake_run_pvt_traj(*pvts);
+  }
+  if (rclcpp::ok()) {
+    if (!is_positions_match(traj_points.back(), 0.01)) {
+      print_warn( "Current pose doesn't match Goal point");
+      //RCLCPP_WARN_STREAM(node->get_logger(), result->error_string);
+    }
+    else {
+      print_info("Goal reached, success!");
+      //RCLCPP_INFO_STREAM(node->get_logger(), result->error_string);
+    }
+  }
+  print_info("TM_ROS: trajectory thread end");
+  return true;
+}
+
 rclcpp_action::GoalResponse TmSctRos2::handle_goal(const rclcpp_action::GoalUUID & uuid,
   std::shared_ptr<const control_msgs::action::FollowJointTrajectory::Goal> goal)
 {
@@ -621,6 +675,12 @@ void TmSctRos2::set_pvt_traj(
     point.velocities = traj_points[i].velocities;
     pvts.points.push_back(point);
   }
+  // else if(traj_points.size() == 2) {
+  //   point.time = sec(traj_points[i].time_from_start);
+  //   point.positions = traj_points[i].positions;
+  //   point.velocities = traj_points[i].velocities;
+  //   pvts.points.push_back(point);
+  // }
   for (i = 1; i < traj_points.size() - 1; ++i) {
     point.time = sec(traj_points[i].time_from_start) - sec(traj_points[i_1].time_from_start);
     if (point.time >= Tmin) {

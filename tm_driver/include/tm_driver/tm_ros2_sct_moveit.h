@@ -69,6 +69,7 @@ public:
     rclcpp::Service<tm_msgs::srv::AskSta>::SharedPtr ask_sta_srv_;
 
     rclcpp_action::Server<control_msgs::action::FollowJointTrajectory>::SharedPtr as_;
+    rclcpp::Subscription<trajectory_msgs::msg::JointTrajectory>::SharedPtr sub_trajectory_cmd_output_;
     std::mutex as_mtx_;
     std::string goal_id_;
     bool has_goal_;
@@ -86,6 +87,7 @@ protected:
     void sct_responsor();
     void sct_connect_recover();
     bool ask_sta_struct(std::string subcmd, std::string subdata, double waitTime,std::string &reSubcmd, std::string &reSubdata);
+    bool trajectoryCommandCB(const std::shared_ptr<trajectory_msgs::msg::JointTrajectory> jointTraj);
 public:
     bool connect_tmsct(
         const std::shared_ptr<tm_msgs::srv::ConnectTM::Request> req,

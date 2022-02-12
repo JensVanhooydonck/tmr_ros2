@@ -140,6 +140,7 @@ size_t TmPacket::build_packet_from_bytes(TmPacket &packet, const char *bytes, si
 	char cs = 0;
 	bool is_valid = true;
 
+
 	if (size < 9) {
 		is_valid = false;
 	}
@@ -265,6 +266,8 @@ size_t TmPacket::build_packet_from_bytes(TmPacket &packet, const char *bytes, si
 //end:
 	if (!is_valid) {
 		print_warn("package not valid");
+		print_info("size: %d", (int)size);
+		print_info(bytes)
 		//packet.reset();
 		packet.set_as_not_finish_data();
 		packet._size = ind_e;
