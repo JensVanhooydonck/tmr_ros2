@@ -133,11 +133,11 @@ TmRobotState::~TmRobotState()
 	delete _data_table;
 }
 
-void TmRobotState::set_joint_states(const std::vector<double> &pos, const std::vector<double> &vel, const std::vector<double> &tor)
+void TmRobotState::set_fake_joint_states(const std::vector<double> &pos, const std::vector<double> &vel, const std::vector<double> &tor)
 {
-	joint_angle() = pos;
-	joint_speed() = vel;
-	joint_torque() = tor;
+	// joint_angle() = pos;
+	// joint_speed() = vel;
+	// joint_torque() = tor;
 
 	tmRobotStateDataToPublish = multiThreadCache.get_catch_data();
 
@@ -155,6 +155,8 @@ void TmRobotState::set_joint_states(const std::vector<double> &pos, const std::v
 // 	}
 	multiThreadCache.set_catch_data(tmRobotStateDataToPublish);
 }
+
+
 
 std::vector<double> TmRobotState::mtx_tcp_force_vec()
 {
@@ -308,7 +310,6 @@ size_t TmRobotState::_deserialize_first_time(const char *data, size_t size)
 
 	return boffset;
 }
-
 size_t TmRobotState::_deserialize(const char *data, size_t size)
 {
 	size_t boffset = 0;
@@ -323,11 +324,9 @@ size_t TmRobotState::_deserialize(const char *data, size_t size)
 	}
 	return boffset;
 }
-
 void TmRobotState::update_tm_robot_publish_state(){
 	tmRobotStateDataToPublish = multiThreadCache.get_catch_data();
 }
-
 void TmRobotState::set_receive_state(TmCommRC state){
 	_receive_state = state;
 }
