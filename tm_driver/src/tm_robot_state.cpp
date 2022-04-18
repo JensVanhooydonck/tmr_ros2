@@ -138,12 +138,16 @@ void TmRobotState::set_joint_states(const std::vector<double> &pos, const std::v
 	// joint_angle() = pos;
 	// joint_speed() = vel;
 	// joint_torque() = tor;
-	for (size_t i = 0; i < 6; ++i) {
-		tmRobotStateDataFromEthernet.joint_angle[i] = pos[i] * (180.0 / M_PI);
-		tmRobotStateDataFromEthernet.joint_speed[i] = vel[i];
-		tmRobotStateDataFromEthernet.joint_torque[i] = tor[i];
+
+	tmRobotStateDataToPublish = multiThreadCache.get_catch_data();
+
+	for(int i=0;i<6;i++){
+            tmRobotStateDataToPublish.joint_angle[i] = pos[i] * (180.0 / M_PI);
+	    tmRobotStateDataToPublish.joint_speed[i] = vel[i];
+	    tmRobotStateDataToPublish.joint_torque[i] = tor[i];
 	}
-	multiThreadCache.set_catch_data(tmRobotStateDataFromEthernet);
+
+	multiThreadCache.set_catch_data(tmRobotStateDataToPublish);
 }
 
 std::vector<double> TmRobotState::mtx_tcp_force_vec()
