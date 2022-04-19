@@ -45,9 +45,15 @@ TmSvrRos2::TmSvrRos2(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake
             "ask_item", std::bind(&TmSvrRos2::ask_item, this,
             std::placeholders::_1, std::placeholders::_2));
     } else {
-      std::vector<double> zeros(state_.DOF);
-      state_.set_fake_joint_states(zeros, zeros, zeros);
-      pubDataTimer = node->create_wall_timer(
+        std::vector<double> zeros(state_.DOF);
+        std::vector<double> joints(state_.DOF);
+        joints[2] = 3.14 / 2;
+        joints[4] = 3.14 / 2;
+        joints[5] = 3.14 / 2;
+        state_.set_fake_joint_states(joints, zeros, zeros);
+        // state_.set_fake_joint_states(zeros, zeros, zeros);
+        
+        pubDataTimer = node->create_wall_timer(
         std::chrono::milliseconds(publishTimeMs), std::bind(&TmSvrRos2::pub_data, this));
     }
 }

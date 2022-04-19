@@ -13,7 +13,6 @@ class TmRos2SctMoveit : public TmSctRos2{
     TmSvrCommunication &svr_;
     TmRobotState &state_;
 
-    void intial_action();
     rclcpp_action::GoalResponse handle_goal(const rclcpp_action::GoalUUID & uuid,
       std::shared_ptr<const control_msgs::action::FollowJointTrajectory::Goal> goal);
     rclcpp_action::CancelResponse handle_cancel(
@@ -33,12 +32,23 @@ class TmRos2SctMoveit : public TmSctRos2{
       TmPvtTraj &pvts, const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> &traj_points, double Tmin);
       std::shared_ptr<TmPvtTraj> get_pvt_traj(
     const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> &traj_points, double Tmin = 0.1);
+    rclcpp_action::GoalResponse debug_function_goal();
+    rclcpp_action::CancelResponse debug_function_cancel();
+    void debug_function();
   public:
-    TmRos2SctMoveit(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake) 
-     : TmSctRos2(node, iface, is_fake)
-     , sct_(iface.sct)
-     , svr_(iface.svr)
-     , state_(iface.state){
-        intial_action();
+    TmRos2SctMoveit(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake);
+    //  : TmSctRos2(node, iface, is_fake)
+    //  , sct_(iface.sct)
+    //  , svr_(iface.svr)
+    //  , state_(iface.state){
+    //     intial_action(this);
+    // }
+    ~TmRos2SctMoveit() {
+      if(as_ == NULL) {
+        print_info("as_ is null");
+      } else {
+        print_info("as_ is not null");
+      }
     }
+
 };

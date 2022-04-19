@@ -1,22 +1,56 @@
 #include "tm_driver/tm_ros2_movit_sct.h"
-void TmRos2SctMoveit::intial_action(){
-    as_ = rclcpp_action::create_server<control_msgs::action::FollowJointTrajectory>(
-     node->get_node_base_interface(),
-     node->get_node_clock_interface(),
-     node->get_node_logging_interface(),
-     node->get_node_waitables_interface(),
-     "tmr_arm_controller/follow_joint_trajectory",
-     std::bind(&TmRos2SctMoveit::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
-     std::bind(&TmRos2SctMoveit::handle_cancel, this, std::placeholders::_1),
-     std::bind(&TmRos2SctMoveit::handle_accepted, this, std::placeholders::_1)
-    );
-    goal_id_.clear();
-    has_goal_ = false;
+#include "tm_driver/tm_ros2_svr.h"
+#include <iostream>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <trajectory_msgs/msg/joint_trajectory.hpp>
+#include <control_msgs/action/follow_joint_trajectory.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+
+TmRos2SctMoveit::TmRos2SctMoveit(rclcpp::Node::SharedPtr node, TmDriver & iface, bool is_fake)
+  : TmSctRos2(node, iface, is_fake),
+  sct_(iface.sct),
+  svr_(iface.svr),
+  state_(iface.state) {
+    if(this->as_ == NULL){
+      print_info("as_ is nog null");
+    } 
+
+  as_ = rclcpp_action::create_server<control_msgs::action::FollowJointTrajectory>(
+    node->get_node_base_interface(),
+    node->get_node_clock_interface(),
+    node->get_node_logging_interface(),
+    node->get_node_waitables_interface(),
+    "tmr_arm_controller/follow_joint_trajectory",
+    std::bind(&TmRos2SctMoveit::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
+    std::bind(&TmRos2SctMoveit::handle_cancel, this, std::placeholders::_1),
+    std::bind(&TmRos2SctMoveit::handle_accepted, this, std::placeholders::_1)
+  );
+  if(this->as_ != NULL){
+      print_info("as_ is not null");
+    } 
+  goal_id_.clear();
+  has_goal_ = false;
 }
 
-rclcpp_action::GoalResponse TmRos2SctMoveit::handle_goal(const rclcpp_action::GoalUUID & uuid,
+void TmRos2SctMoveit::debug_function() {
+  print_info("DEBUG");
+}
+
+rclcpp_action::GoalResponse TmRos2SctMoveit::debug_function_goal() {
+  print_info("DEBUG");
+  return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+}
+
+rclcpp_action::CancelResponse TmRos2SctMoveit::debug_function_cancel() {
+  print_info("DEBUG");
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
+
+rclcpp_action::GoalResponse TmRos2SctMoveit::handle_goal(
+  const rclcpp_action::GoalUUID & uuid,
   std::shared_ptr<const control_msgs::action::FollowJointTrajectory::Goal> goal)
 {
+  print_info("Launching follow joint traJECTORY");
   auto goal_id = rclcpp_action::to_string(uuid);
   print_info("Received new action goal %s", goal_id.c_str());
   //RCLCPP_INFO_STREAM(node->get_logger(), "Received new action goal " << goal_id);
@@ -68,7 +102,8 @@ void TmRos2SctMoveit::handle_accepted(
     has_goal_ = true;
   }
   // this needs to return quickly to avoid blocking the executor, so spin up a new thread
-  std::thread{std::bind(&TmRos2SctMoveit::execute_traj, this, std::placeholders::_1), goal_handle}.detach();
+  std::thread{std::bind(&TmRos2SctMoveit::execute_traj, this, std::placeholders::_1),
+    goal_handle}.detach();
 
 }
 
@@ -82,7 +117,7 @@ void TmRos2SctMoveit::execute_traj(
   //actually, no need to reorder
   //std::vector<trajectory_msgs::msg::JointTrajectoryPoint> traj_points;
   //reorder_traj_joints(traj_points, goal_handle->get_goal()->trajectory);
-  auto &traj_points = goal_handle->get_goal()->trajectory.points;
+  auto & traj_points = goal_handle->get_goal()->trajectory.points;
 
   if (!is_positions_match(traj_points.front(), 0.01)) {
     result->error_code = result->PATH_TOLERANCE_VIOLATED;
@@ -103,9 +138,10 @@ void TmRos2SctMoveit::execute_traj(
   }
 
   if (!is_fake_) {
+    print_info("Running real pvt traj");
     iface_.run_pvt_traj(*pvts);
-  }
-  else {
+  } else {
+    print_info("Running pvt traj");
     iface_.fake_run_pvt_traj(*pvts);
   }
   if (rclcpp::ok()) {
@@ -114,8 +150,7 @@ void TmRos2SctMoveit::execute_traj(
       result->error_string = "Current pose doesn't match Goal point";
       print_warn(result->error_string.c_str());
       //RCLCPP_WARN_STREAM(node->get_logger(), result->error_string);
-    }
-    else {
+    } else {
       result->error_code = result->SUCCESSFUL;
       result->error_string = "Goal reached, success!";
       print_info(result->error_string.c_str());
@@ -132,16 +167,17 @@ void TmRos2SctMoveit::execute_traj(
 }
 
 void TmRos2SctMoveit::reorder_traj_joints(
-  std::vector<trajectory_msgs::msg::JointTrajectoryPoint> &new_traj_points,
-  const trajectory_msgs::msg::JointTrajectory& traj)
+  std::vector<trajectory_msgs::msg::JointTrajectoryPoint> & new_traj_points,
+  const trajectory_msgs::msg::JointTrajectory & traj)
 {
   /* Reorders trajectory - destructive */
   std::vector<size_t> mapping;
   mapping.resize(jns_.size(), jns_.size());
   for (size_t i = 0; i < traj.joint_names.size(); ++i) {
     for (size_t j = 0; j < jns_.size(); ++j) {
-      if (traj.joint_names[i] == jns_[j])
+      if (traj.joint_names[i] == jns_[j]) {
         mapping[j] = i;
+      }
     }
   }
   new_traj_points.clear();
@@ -150,62 +186,66 @@ void TmRos2SctMoveit::reorder_traj_joints(
     for (unsigned int j = 0; j < traj.points[i].positions.size(); ++j) {
       new_point.positions.push_back(traj.points[i].positions[mapping[j]]);
       new_point.velocities.push_back(traj.points[i].velocities[mapping[j]]);
-      if (traj.points[i].accelerations.size() != 0)
+      if (traj.points[i].accelerations.size() != 0) {
         new_point.accelerations.push_back(traj.points[i].accelerations[mapping[j]]);
+      }
     }
     new_point.time_from_start = traj.points[i].time_from_start;
     new_traj_points.push_back(new_point);
   }
 }
-bool TmRos2SctMoveit::has_points(const trajectory_msgs::msg::JointTrajectory &traj)
+bool TmRos2SctMoveit::has_points(const trajectory_msgs::msg::JointTrajectory & traj)
 {
-  if (traj.points.size() == 0) return false;
-  for (auto &point : traj.points) {
+  if (traj.points.size() == 0) {return false;}
+  for (auto & point : traj.points) {
     if (point.positions.size() != traj.joint_names.size() ||
-      point.velocities.size() != traj.joint_names.size()) return false;
+      point.velocities.size() != traj.joint_names.size()) {return false;}
   }
   return true;
 }
-bool TmRos2SctMoveit::is_traj_finite(const trajectory_msgs::msg::JointTrajectory &traj)
+bool TmRos2SctMoveit::is_traj_finite(const trajectory_msgs::msg::JointTrajectory & traj)
 {
-  for (auto &point : traj.points) {
-    for (auto &p : point.positions) {
-      if (!std::isfinite(p)) return false;
+  for (auto & point : traj.points) {
+    for (auto & p : point.positions) {
+      if (!std::isfinite(p)) {return false;}
     }
-    for (auto &v : point.velocities) {
-      if (!std::isfinite(v)) return false;
+    for (auto & v : point.velocities) {
+      if (!std::isfinite(v)) {return false;}
     }
   }
   return true;
 }
 bool TmRos2SctMoveit::is_positions_match(
-  const trajectory_msgs::msg::JointTrajectoryPoint &point, double eps)
+  const trajectory_msgs::msg::JointTrajectoryPoint & point, double eps)
 {
   auto q_act = state_.joint_angle();
   for (size_t i = 0; i < point.positions.size(); ++i) {
-    if (fabs(point.positions[i] - q_act[i]) > eps)
+    if (fabs(point.positions[i] - q_act[i]) > eps) {
       return false;
+    }
   }
   return true;
 }
 void TmRos2SctMoveit::set_pvt_traj(
-  TmPvtTraj &pvts, const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> &traj_points, double Tmin)
+  TmPvtTraj & pvts, const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> & traj_points,
+  double Tmin)
 {
   size_t i = 0, i_1 = 0, i_2 = 0;
   int skip_count = 0;
   TmPvtPoint point;
 
-  if (traj_points.size() == 0) return;
+  if (traj_points.size() == 0) {return;}
 
   pvts.mode = TmPvtMode::Joint;
 
-  auto sec = [](const builtin_interfaces::msg::Duration& t) {
-    return static_cast<double>(t.sec) + 1e-9 * static_cast<double>(t.nanosec);
-  };
+  auto sec = [](const builtin_interfaces::msg::Duration & t) {
+      return static_cast<double>(t.sec) + 1e-9 * static_cast<double>(t.nanosec);
+    };
 
   // first point
   if (sec(traj_points[i].time_from_start) != 0.0) {
-    print_warn("TM_ROS: Traj.: first point should be the current position, with time_from_start set to 0.0");
+    print_warn(
+      "TM_ROS: Traj.: first point should be the current position, with time_from_start set to 0.0");
     point.time = sec(traj_points[i].time_from_start);
     point.positions = traj_points[i].positions;
     point.velocities = traj_points[i].velocities;
@@ -219,25 +259,23 @@ void TmRos2SctMoveit::set_pvt_traj(
       point.positions = traj_points[i].positions;
       point.velocities = traj_points[i].velocities;
       pvts.points.push_back(point);
-    }
-    else {
+    } else {
       ++skip_count;
     }
   }
   if (skip_count > 0) {
-    print_warn("TM_ROS: Traj.: skip %d points", (int)skip_count);	
+    print_warn("TM_ROS: Traj.: skip %d points", (int)skip_count);
     //RCLCPP_WARN_STREAM(rclcpp::get_logger("rclcpp"),"TM_ROS: Traj.: skip " << (int)skip_count << " points");
   }
   // last point
   if (traj_points.size() > 1) {
-    i =  traj_points.size() - 1;
+    i = traj_points.size() - 1;
     point.time = sec(traj_points[i].time_from_start) - sec(traj_points[i_1].time_from_start);
     point.positions = traj_points[i].positions;
     point.velocities = traj_points[i].velocities;
     if (point.time >= Tmin) {
       pvts.points.push_back(point);
-    }
-    else {
+    } else {
       point.time = sec(traj_points[i].time_from_start) - sec(traj_points[i_2].time_from_start);
       pvts.points.back() = point;
       ++skip_count;
@@ -247,7 +285,7 @@ void TmRos2SctMoveit::set_pvt_traj(
   pvts.total_time = sec(traj_points.back().time_from_start);
 }
 std::shared_ptr<TmPvtTraj> TmRos2SctMoveit::get_pvt_traj(
-    const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> &traj_points, double Tmin)
+  const std::vector<trajectory_msgs::msg::JointTrajectoryPoint> & traj_points, double Tmin)
 {
   std::shared_ptr<TmPvtTraj> pvts = std::make_shared<TmPvtTraj>();
   set_pvt_traj(*pvts, traj_points, Tmin);

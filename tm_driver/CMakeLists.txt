@@ -94,10 +94,12 @@ if (moveit2_lib_auto_judge)
       std_msgs
       sensor_msgs
       tm_msgs
+      tf2_geometry_msgs
 
       trajectory_msgs
       control_msgs
       rclcpp_action
+      rclcpp_components
     )
   else()
     add_executable(tm_driver

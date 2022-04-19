@@ -5,7 +5,6 @@ TmSctRos2::TmSctRos2(rclcpp::Node::SharedPtr node, TmDriver &iface, bool is_fake
     , iface_(iface)
     , is_fake_(is_fake)
 {
-
     jns_.clear();
     jns_.push_back("joint_1");
     jns_.push_back("joint_2");
